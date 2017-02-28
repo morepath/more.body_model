@@ -24,8 +24,8 @@ class App(morepath.App):
         return json
 
 
-@App.predicate(App.get_view, name='body_model', default=object,
-               index=ClassIndex, after=morepath.request_method_predicate)
+@App.predicate(morepath.App.get_view, name='body_model', default=object,
+               index=ClassIndex, after=morepath.LAST_VIEW_PREDICATE)
 def body_model_predicate(self, obj, request):
     """match request.body_obj with body_model by class.
 
@@ -38,8 +38,8 @@ def body_model_predicate(self, obj, request):
     return request.body_obj.__class__
 
 
-@App.predicate_fallback(App.get_view, body_model_predicate)
-def body_model_unprocessable(request):
+@App.predicate_fallback(morepath.App.get_view, body_model_predicate)
+def body_model_unprocessable(self, obj, request):
     """if body_model not matched, 422.
 
     Fallback for :meth:`morepath.App.view`.
