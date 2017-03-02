@@ -3,24 +3,6 @@ from reg import methodify
 from morepath import directive
 
 
-def isbaseclass_notfound(a, b):
-    # NOT_FOUND can happen in case of a fallback
-    if a is dectate.NOT_FOUND:
-        a = object
-    return directive.isbaseclass(a, b)
-
-
-class ViewAction(directive.ViewAction):
-    filter_convert = {
-        'body_model': dectate.convert_dotted_name
-    }
-    filter_convert.update(directive.ViewAction.filter_convert)
-    filter_compare = {
-        'body_model': isbaseclass_notfound
-    }
-    filter_compare.update(directive.ViewAction.filter_compare)
-
-
 class LoadJsonAction(dectate.Action):
     config = {
     }

@@ -9,7 +9,6 @@ from . import directive as action
 
 class App(morepath.App):
     request_class = Request
-    view = directive(action.ViewAction)
     load_json = directive(action.LoadJsonAction)
 
     def _load_json(self, json, request):
