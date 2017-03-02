@@ -179,7 +179,7 @@ def test_json_body_model():
 
 @pytest.mark.xfail(reason="body_model doesn't work on mounted app")
 def test_json_body_model_on_mounted_app():
-    class ContainingApp(morepath.App):
+    class BaseApp(morepath.App):
         pass
 
     class BMApp(BodyModelApp):
@@ -206,7 +206,7 @@ def test_json_body_model_on_mounted_app():
     def get_collection():
         return collection
 
-    @ContainingApp.mount(app=BMApp, path='bm')
+    @BaseApp.mount(app=BMApp, path='bm')
     def get_bmapp():
         return BMApp()
 
@@ -223,7 +223,115 @@ def test_json_body_model_on_mounted_app():
         elif json['@type'] == 'Item2':
             return Item2(json['x'])
 
-    c = Client(ContainingApp())
+    c = Client(BaseApp())
+
+    c.post_json('/bm', {'@type': 'Item1', 'x': 'foo'})
+
+    assert len(collection.items) == 1
+    assert isinstance(collection.items[0], Item1)
+    assert collection.items[0].value == 'foo'
+
+    c.post_json('/bm', {'@type': 'Item2', 'x': 'foo'}, status=422)
+
+
+def test_json_body_model_on_mounting_and_mounted_app():
+    class BaseApp(BodyModelApp):
+        pass
+
+    class BMApp(BodyModelApp):
+        pass
+
+    class Collection(object):
+        def __init__(self):
+            self.items = []
+
+        def add(self, item):
+            self.items.append(item)
+
+    class Item1(object):
+        def __init__(self, value):
+            self.value = value
+
+    class Item2(object):
+        def __init__(self, value):
+            self.value = value
+
+    collection = Collection()
+
+    @BMApp.path(path='/', model=Collection)
+    def get_collection():
+        return collection
+
+    @BaseApp.mount(app=BMApp, path='bm')
+    def get_bmapp():
+        return BMApp()
+
+    @BMApp.json(model=Collection, request_method='POST',
+                body_model=Item1)
+    def default(self, request):
+        self.add(request.body_obj)
+        return 'done'
+
+    @BMApp.load_json()
+    def load_json(json, request):
+        if json['@type'] == 'Item1':
+            return Item1(json['x'])
+        elif json['@type'] == 'Item2':
+            return Item2(json['x'])
+
+    c = Client(BaseApp())
+
+    c.post_json('/bm', {'@type': 'Item1', 'x': 'foo'})
+
+    assert len(collection.items) == 1
+    assert isinstance(collection.items[0], Item1)
+    assert collection.items[0].value == 'foo'
+
+    c.post_json('/bm', {'@type': 'Item2', 'x': 'foo'}, status=422)
+
+
+def test_json_body_model_subapp():
+    class RootApp(BodyModelApp):
+        pass
+
+    class App(RootApp):
+        pass
+
+    class Collection(object):
+        def __init__(self):
+            self.items = []
+
+        def add(self, item):
+            self.items.append(item)
+
+    class Item1(object):
+        def __init__(self, value):
+            self.value = value
+
+    class Item2(object):
+        def __init__(self, value):
+            self.value = value
+
+    collection = Collection()
+
+    @App.path(path='/bm', model=Collection)
+    def get_collection():
+        return collection
+
+    @App.json(model=Collection, request_method='POST',
+                body_model=Item1)
+    def default(self, request):
+        self.add(request.body_obj)
+        return 'done'
+
+    @App.load_json()
+    def load_json(json, request):
+        if json['@type'] == 'Item1':
+            return Item1(json['x'])
+        elif json['@type'] == 'Item2':
+            return Item2(json['x'])
+
+    c = Client(App())
 
     c.post_json('/bm', {'@type': 'Item1', 'x': 'foo'})
 

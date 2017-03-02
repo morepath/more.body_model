@@ -16,6 +16,10 @@ To use it you have to subclass your application from
   class App(BodyModelApp):
       pass
 
+.. note:: If you want to use body_model on a mounted App, make sure that both,
+the base App and the mounted App are a subclass from
+``more.body_model.BodyModelApp``. Otherwise it will not work.
+
 
 load_json
 ---------
