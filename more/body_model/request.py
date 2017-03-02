@@ -11,7 +11,7 @@ class Request(morepath.Request):
         conversion takes place, and ``body_obj`` is identical to
         the ``json`` attribute.
         """
-        if not self.is_body_readable:
+        if not self.is_body_readable:   # pragma: no cover
             return None
         if self.content_type != 'application/json':
             return None
