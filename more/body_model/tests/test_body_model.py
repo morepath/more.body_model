@@ -1,8 +1,31 @@
 import pytest
 from webtest import TestApp as Client
 
-import dectate
+import morepath
 from more.body_model import BodyModelApp
+
+
+def test_json_obj_dump():
+    class App(BodyModelApp):
+        pass
+
+    @App.path(path='/models/{x}')
+    class Model(object):
+        def __init__(self, x):
+            self.x = x
+
+    @App.json(model=Model)
+    def default(self, request):
+        return self
+
+    @App.dump_json(model=Model)
+    def dump_model_json(self, request):
+        return {'x': self.x}
+
+    c = Client(App())
+
+    response = c.get('/models/foo')
+    assert response.json == {'x': 'foo'}
 
 
 def test_json_obj_load():
@@ -154,6 +177,63 @@ def test_json_body_model():
     c.post_json('/', {'@type': 'Item2', 'x': 'foo'}, status=422)
 
 
+@pytest.mark.xfail(reason="body_model doesn't work on mounted app")
+def test_json_body_model_on_mounted_app():
+    class ContainingApp(morepath.App):
+        pass
+
+    class BMApp(BodyModelApp):
+        pass
+
+    class Collection(object):
+        def __init__(self):
+            self.items = []
+
+        def add(self, item):
+            self.items.append(item)
+
+    class Item1(object):
+        def __init__(self, value):
+            self.value = value
+
+    class Item2(object):
+        def __init__(self, value):
+            self.value = value
+
+    collection = Collection()
+
+    @BMApp.path(path='/', model=Collection)
+    def get_collection():
+        return collection
+
+    @ContainingApp.mount(app=BMApp, path='bm')
+    def get_bmapp():
+        return BMApp()
+
+    @BMApp.json(model=Collection, request_method='POST',
+                body_model=Item1)
+    def default(self, request):
+        self.add(request.body_obj)
+        return 'done'
+
+    @BMApp.load_json()
+    def load_json(json, request):
+        if json['@type'] == 'Item1':
+            return Item1(json['x'])
+        elif json['@type'] == 'Item2':
+            return Item2(json['x'])
+
+    c = Client(ContainingApp())
+
+    c.post_json('/bm', {'@type': 'Item1', 'x': 'foo'})
+
+    assert len(collection.items) == 1
+    assert isinstance(collection.items[0], Item1)
+    assert collection.items[0].value == 'foo'
+
+    c.post_json('/bm', {'@type': 'Item2', 'x': 'foo'}, status=422)
+
+
 def test_json_obj_load_no_json_post():
     class App(BodyModelApp):
         pass
@@ -229,62 +309,3 @@ def test_load_interaction():
     assert r.json == "this is b"
     with pytest.raises(Error):
         client.post_json('/', {'letter': 'c'})
-
-
-def objects(actions):
-    result = []
-    for action, obj in actions:
-        result.append(obj)
-    return result
-
-
-class Base(object):
-    pass
-
-
-class Foo(Base):
-    pass
-
-
-def test_view_body_model_querytool():
-    class App(BodyModelApp):
-        pass
-
-    @App.view(model=Foo, request_method='POST', body_model=Base)
-    def foo_base(self, request):
-        pass
-
-    @App.view(model=Foo, request_method='POST', body_model=Foo)
-    def foo_foo(self, request):
-        pass
-
-    dectate.commit(App)
-
-    r = objects(dectate.query_app(
-        App, 'view',
-        model='morepath.tests.test_querytool.Foo',
-        body_model='morepath.tests.test_querytool.Base'))
-
-    assert r == [foo_base]
-
-    r = objects(dectate.query_app(
-        App, 'view',
-        model='morepath.tests.test_querytool.Foo',
-        body_model='morepath.tests.test_querytool.Foo'))
-    assert r == [foo_base, foo_foo]
-
-
-def test_load_json_querytool():
-    class App(BodyModelApp):
-        pass
-
-    @App.load_json()
-    def load(json, request):
-        pass
-
-    dectate.commit(App)
-
-    r = objects(dectate.query_app(
-        App, 'load_json'))
-
-    assert r == [load]
