@@ -1,7 +1,6 @@
 import dectate
 from reg import methodify
 from morepath import directive
-from .view import View
 
 
 def isbaseclass_notfound(a, b):
@@ -20,15 +19,6 @@ class ViewAction(directive.ViewAction):
         'body_model': isbaseclass_notfound
     }
     filter_compare.update(directive.ViewAction.filter_compare)
-
-    def perform(self, obj, template_engine_registry, app_class):
-        render = self.render
-        if self.template is not None:
-            render = template_engine_registry.get_template_render(
-                self.template, render)
-        v = View(obj, render, self.load, self.permission, self.internal,
-                 self.code_info)
-        app_class.get_view.register(v, **self.key_dict())
 
 
 class LoadJsonAction(dectate.Action):
