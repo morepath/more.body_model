@@ -318,8 +318,7 @@ def test_json_body_model_subapp():
     def get_collection():
         return collection
 
-    @App.json(model=Collection, request_method='POST',
-                body_model=Item1)
+    @App.json(model=Collection, request_method='POST', body_model=Item1)
     def default(self, request):
         self.add(request.body_obj)
         return 'done'
