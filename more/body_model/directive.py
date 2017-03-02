@@ -1,6 +1,5 @@
 import dectate
 from reg import methodify
-from morepath import directive
 
 
 class LoadJsonAction(dectate.Action):
