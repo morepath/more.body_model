@@ -28,7 +28,7 @@ setup(name='more.body_model',
           'Programming Language :: Python :: 3.5',
       ],
       install_requires=[
-          'morepath >= 0.18.dev0'
+          'morepath >= 0.18'
       ],
       extras_require=dict(
           test=[
