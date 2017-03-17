@@ -8,7 +8,7 @@ long_description = (
     io.open('CHANGES.rst', encoding='utf-8').read())
 
 setup(name='more.body_model',
-      version='0.1dev0',
+      version='0.1',
       description="load_json infrastructure for Morepath",
       long_description=long_description,
       author="Henri Hulski",
