@@ -6,4 +6,6 @@ CHANGES
 
 * Update supported Python versions.
 
+* Use GitHub Actions for CI.
+
 * initial public release.
