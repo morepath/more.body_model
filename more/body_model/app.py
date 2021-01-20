@@ -23,8 +23,13 @@ class App(morepath.App):
         return json
 
 
-@App.predicate(morepath.App.get_view, name='body_model', default=object,
-               index=ClassIndex, after=morepath.LAST_VIEW_PREDICATE)
+@App.predicate(
+    morepath.App.get_view,
+    name="body_model",
+    default=object,
+    index=ClassIndex,
+    after=morepath.LAST_VIEW_PREDICATE,
+)
 def body_model_predicate(self, obj, request):
     """match request.body_obj with body_model by class.
 
@@ -32,7 +37,7 @@ def body_model_predicate(self, obj, request):
     """
     # optimization: if we have a GET request, a common case,
     # then there is no point in accessing the body.
-    if request.method == 'GET':
+    if request.method == "GET":
         return None.__class__
     return request.body_obj.__class__
 
