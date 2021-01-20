@@ -2,9 +2,6 @@
    :target: https://github.com/morepath/more.body_model/actions?workflow=CI
    :alt: CI Status
 
-.. image:: https://coveralls.io/repos/github/morepath/more.body_model/badge.svg?branch=master
-    :target: https://coveralls.io/github/morepath/more.body_model?branch=master
-
 .. image:: https://img.shields.io/pypi/v/more.body_model.svg
   :target: https://pypi.org/project/more.body_model/
 
